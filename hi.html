@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Certificate Management Platform - Perfect 1-Page Fix</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Baskervville:ital@0;1&family=Great+Vibes&family=Montserrat:wght@500;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --academic-black: #111111;
+            --diploma-navy: #0A1D37;
+            --crest-gold: #9E7A28;
+            --bg-workspace: #e9ecf2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-workspace);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Workspace Panel Layout --- */
+        .control-panel {
+            width: 420px;
+            background: #ffffff;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .control-panel h2 {
+            color: var(--diploma-navy);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            color: #333;
+        }
+
+        .form-group input[type="file"] {
+            padding: 6px;
+            background: #fafafa;
+            cursor: pointer;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--diploma-navy);
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- Interactive Preview Container --- */
+        .preview-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: auto;
+            background: #cbd5e1;
+        }
+
+        .preview-scaler {
+            transform: scale(0.5);
+            transform-origin: center center;
+        }
+
+        /* --- Locked A4 Structural Specifications --- */
+        #certificate-print-area {
+            width: 210mm;
+            height: 297mm;
+            background: #ffffff;
+            padding: 14mm;
+            /* Compact border margins */
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Hard lock to prevent multi-page spill overs */
+        }
+
+        .outer-border {
+            flex: 1;
+            border: 4px double var(--diploma-navy);
+            background-color: #fffdfa;
+            padding: 4mm;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .inner-border {
+            flex: 1;
+            border: 1px solid var(--crest-gold);
+            padding: 10mm 12mm 8mm 12mm;
+            /* Highly targeted compact internal spacing */
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            /* Dynamically manages variable whitespace distribution */
+        }
+
+        .corner-accent {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--crest-gold);
+            z-index: 5;
+        }
+
+        .t-l {
+            top: 4px;
+            left: 4px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .t-r {
+            top: 4px;
+            right: 4px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .b-l {
+            bottom: 4px;
+            left: 4px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .b-r {
+            bottom: 4px;
+            right: 4px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* --- Beautiful Real-School Center Circular Watermark --- */
+        .academic-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 340px;
+            height: 340px;
+            opacity: 0.045;
+            /* Clean fading factor for print overlay safety */
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .academic-watermark svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- Document Typography Settings --- */
+        .header-section {
+            position: relative;
+            z-index: 3;
+        }
+
+        .center-name {
+            font-family: 'Baskervville', 'Times New Roman', serif;
+            font-size: 24pt;
+            font-weight: 700;
+            color: var(--diploma-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+            max-width: 95%;
+            margin: 0 auto;
+        }
+
+        .center-location {
+            font-family: 'Georgia', serif;
+            font-size: 10.5pt;
+            color: #333333;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .divider-line {
+            width: 50mm;
+            height: 1px;
+            background: var(--crest-gold);
+            margin: 3mm auto;
+            position: relative;
+            z-index: 3;
+        }
+
+        .cert-title {
+            font-family: 'Baskervville', 'Times New Roman', serif;
+            font-size: 26pt;
+            font-weight: 700;
+            color: var(--diploma-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .presentation-prose {
+            font-family: 'Georgia', serif;
+            font-size: 11.5pt;
+            color: #444444;
+            font-style: italic;
+        }
+
+        /* Portrait Photo Holder Container Rules */
+        .photo-frame-container {
+            margin: 2mm auto;
+            width: 30mm;
+            height: 38mm;
+            border: 1px dashed var(--crest-gold);
+            outline: 4px solid #fffdfa;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            z-index: 3;
+        }
+
+        .photo-frame-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .photo-placeholder-text {
+            font-size: 7pt;
+            color: #999999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            text-align: center;
+            padding: 4px;
+            font-family: 'Georgia', serif;
+        }
+
+        /* Name Container */
+        .student-name-container {
+            margin: 1mm auto;
+            width: 85%;
+            border-bottom: 1px solid var(--crest-gold);
+            padding-bottom: 2px;
+            min-height: 42pt;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 3;
+        }
+
+        .student-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: 34pt;
+            color: var(--diploma-navy);
+            line-height: 1.1;
+            white-space: nowrap;
+        }
+
+        .fulfillment-text {
+            font-family: 'Georgia', serif;
+            font-size: 11pt;
+            color: #222222;
+            line-height: 1.5;
+            max-width: 90%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3;
+        }
+
+        /* Formal Institutional Course Display Customization */
+        .course-title-box {
+            margin: 2mm auto;
+            border-top: 1px double var(--crest-gold);
+            border-bottom: 1px double var(--crest-gold);
+            padding: 6px 0;
+            width: 85%;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 3;
+        }
+
+        .course-title {
+            font-family: 'Baskervville', 'Times New Roman', serif;
+            font-size: 14pt;
+            font-weight: 700;
+            color: var(--diploma-navy);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Academic Metadata Evaluation Configurations */
+        .metadata-container {
+            margin: 2mm auto;
+            width: 85%;
+            position: relative;
+            z-index: 3;
+        }
+
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Georgia', serif;
+            font-size: 10.5pt;
+        }
+
+        .meta-table td {
+            padding: 3px 0;
+            color: #222222;
+            vertical-align: top;
+        }
+
+        .label-bold {
+            font-weight: 700;
+            color: var(--diploma-navy);
+            text-align: right;
+            width: 46%;
+            padding-right: 15px;
+        }
+
+        .value-text {
+            text-align: left;
+            width: 54%;
+            padding-left: 15px;
+        }
+
+        /* Central Star Burst Verification Crest Seal Badge */
+        .seal-graphic {
+            margin: 1mm auto;
+            position: relative;
+            width: 50px;
+            height: 50px;
+            z-index: 3;
+        }
+
+        .star-emblem {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: var(--crest-gold);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .inner-emblem-circle {
+            position: absolute;
+            top: 7px;
+            left: 7px;
+            width: 36px;
+            height: 36px;
+            background: var(--diploma-navy);
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+        }
+
+        /* Footer Endorsement Lines Frame layout */
+        .footer-section {
+            padding-top: 2mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+            font-family: 'Georgia', serif;
+            position: relative;
+            z-index: 3;
+        }
+
+        .footer-block {
+            width: 40%;
+            text-align: center;
+        }
+
+        .signature-display {
+            font-family: 'Great Vibes', cursive;
+            font-size: 24pt;
+            color: var(--diploma-navy);
+            height: 30px;
+            line-height: 30px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+
+        .date-display {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #111111;
+            height: 30px;
+            line-height: 30px;
+            margin-bottom: 4px;
+        }
+
+        .line-marker {
+            border-top: 1px solid var(--academic-black);
+            padding-top: 4px;
+        }
+
+        .line-title {
+            font-family: 'Baskervville', 'Times New Roman', serif;
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: var(--diploma-navy);
+            text-transform: uppercase;
+        }
+
+        .line-sub {
+            font-size: 8pt;
+            color: #555555;
+            margin-top: 1px;
+            font-style: italic;
+        }
+
+        @media (max-width: 1400px) {
+            .preview-scaler {
+                transform: scale(0.48);
+            }
+        }
+
+        @media (max-width: 1150px) {
+            .preview-scaler {
+                transform: scale(0.4);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="control-panel">
+        <h2>Certificate Workplace</h2>
+
+        <div class="form-group">
+            <label>Institution Name</label>
+            <input type="text" id="input-center-name" value="Sri Madhavi Computer Institute">
+        </div>
+
+        <div class="form-group">
+            <label>Institution Location</label>
+            <input type="text" id="input-location" value="Tanuku, Andhra Pradesh">
+        </div>
+
+        <div class="form-group">
+            <label>Student Passport Photo</label>
+            <input type="file" id="input-student-photo" accept="image/*">
+        </div>
+
+        <div class="form-group">
+            <label>Student Full Name</label>
+            <input type="text" id="input-student-name" value="Enter Student Name">
+        </div>
+
+        <div class="form-group">
+            <label>Course / Stream Name</label>
+            <input type="text" id="input-course-title" value="Course Name">
+        </div>
+
+        <div class="form-group">
+            <label>Registration Number</label>
+            <input type="text" id="input-reg-num" value="SMCI-1983-0000">
+        </div>
+
+        <div class="form-group">
+            <label>Course Duration</label>
+            <input type="text" id="input-duration" value="Enter course duration">
+        </div>
+
+        <div class="form-group">
+            <label>Performance Grade / Class</label>
+            <input type="text" id="input-grade" value="Enter performance grade">
+        </div>
+
+        <div class="form-group">
+            <label>Date of Convocation / Issue</label>
+            <input type="text" id="input-date" value="Enter Date of Completion">
+        </div>
+
+        <div class="form-group">
+            <label>Head of Institution Signature</label>
+            <input type="text" id="input-sig" value="V.V.Narayana">
+        </div>
+
+        <button class="download-btn" onclick="generatePDF()">Download Certificate</button>
+    </div>
+
+    <div class="preview-container">
+        <div class="preview-scaler">
+
+            <div id="certificate-print-area">
+                <div class="outer-border">
+                    <div class="inner-border">
+
+                        <div class="corner-accent t-l"></div>
+                        <div class="corner-accent t-r"></div>
+                        <div class="corner-accent b-l"></div>
+                        <div class="corner-accent b-r"></div>
+
+                        <div class="academic-watermark">
+                            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <path id="textArcTop" d="M 20,100 A 80,80 0 1,1 180,100" fill="none" />
+                                    <path id="textArcBottom" d="M 180,100 A 80,80 0 0,1 20,100" fill="none" />
+                                </defs>
+                                <circle cx="100" cy="100" r="92" fill="none" stroke="#0A1D37" stroke-width="1.5" />
+                                <circle cx="100" cy="100" r="84" fill="none" stroke="#0A1D37" stroke-width="3"
+                                    stroke-dasharray="1 3" />
+                                <circle cx="100" cy="100" r="76" fill="none" stroke="#0A1D37" stroke-width="1" />
+                                <circle cx="100" cy="100" r="50" fill="none" stroke="#0A1D37" stroke-width="1.5" />
+
+                                <g transform="translate(78,82) scale(0.08)" fill="#0A1D37">
+                                    <path
+                                        d="M464 64H48C21.5 64 0 85.5 0 112v288c0 26.5 21.5 48 48 48h416c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM224 416H48V112h176v304zm240 0H288V112h176v304z" />
+                                </g>
+
+                                <text font-family="'Baskervville', 'Times New Roman', serif" font-size="11.5"
+                                    font-weight="bold" fill="#0A1D37" letter-spacing="0.6">
+                                    <textPath href="#textArcTop" startOffset="50%" text-anchor="middle">SRI MADHAVI
+                                        COMPUTER INSTITUTE</textPath>
+                                </text>
+                                <text font-family="'Baskervville', 'Times New Roman', serif" font-size="11"
+                                    font-weight="bold" fill="#0A1D37" letter-spacing="1">
+                                    <textPath href="#textArcBottom" startOffset="50%" text-anchor="middle">&#9733; ESTD.
+                                        1983 &#9733;</textPath>
+                                </text>
+                            </svg>
+                        </div>
+
+                        <div class="header-section">
+                            <div class="logo-placeholder"></div>
+                            <div class="center-name" id="view-center-name">Sri Madhavi Computer Institute</div>
+                            <div class="center-location" id="view-location">Tanuku, Andhra Pradesh</div>
+                        </div>
+
+                        <div class="divider-line"></div>
+
+                        <div>
+                            <div class="cert-title">Certificate of Completion</div>
+                            <div class="presentation-prose">This diploma is officially conferred upon</div>
+                        </div>
+
+                        <div class="photo-frame-container">
+                            <span class="photo-placeholder-text" id="photo-placeholder">Affix Student Photo Here</span>
+                            <img id="view-student-photo" src="" alt="Student Academic Photo">
+                        </div>
+
+                        <div class="student-name-container">
+                            <div class="student-name" id="view-student-name"></div>
+                        </div>
+
+                        <div class="fulfillment-text">
+                            who has satisfied all academic requirements and successfully passed the prescribed board
+                            examinations for the complete module of study in
+                        </div>
+
+                        <div class="course-title-box">
+                            <div class="course-title" id="view-course-title"></div>
+                        </div>
+
+                        <div class="metadata-container">
+                            <table class="meta-table">
+                                <tr>
+                                    <td class="label-bold">Registration No:</td>
+                                    <td class="value-text" id="view-reg-num">SMCI-1983-0000</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-bold">Course Duration:</td>
+                                    <td class="value-text" id="view-duration"></td>
+                                </tr>
+                                <tr>
+                                    <td class="label-bold">Performance Evaluation:</td>
+                                    <td class="value-text" id="view-grade"></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="seal-graphic">
+                            <div class="star-emblem"></div>
+                            <div class="inner-emblem-circle"></div>
+                        </div>
+
+                        <div class="footer-section">
+                            <div class="footer-block">
+                                <div class="date-display" id="view-date"></div>
+                                <div class="line-marker">
+                                    <div class="line-title">Date of Issue</div>
+                                    <div class="line-sub">Official Academic Record</div>
+                                </div>
+                            </div>
+
+                            <div class="footer-block">
+                                <div class="signature-display" id="view-sig">V.V.Narayana</div>
+                                <div class="line-marker">
+                                    <div class="line-title">Head of Institution</div>
+                                    <div class="line-sub">Authorized Digital Signatory</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function adjustFontSize(elementId, maxFontSize, containerWidth) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            let size = maxFontSize;
+            el.style.fontSize = size + 'pt';
+
+            while (el.scrollWidth > containerWidth && size > 10) {
+                size -= 0.5; // Precision adjustment increments
+                el.style.fontSize = size + 'pt';
+            }
+        }
+
+        function runGlobalTextAdjustments() {
+            adjustFontSize('view-student-name', 34, 620);
+            adjustFontSize('view-course-title', 14, 650);
+            adjustFontSize('view-sig', 24, 280);
+        }
+
+        const inputMap = {
+            'input-center-name': 'view-center-name',
+            'input-location': 'view-location',
+            'input-student-name': 'view-student-name',
+            'input-course-title': 'view-course-title',
+            'input-reg-num': 'view-reg-num',
+            'input-duration': 'view-duration',
+            'input-grade': 'view-grade',
+            'input-date': 'view-date',
+            'input-sig': 'view-sig'
+        };
+
+        Object.keys(inputMap).forEach(id => {
+            document.getElementById(id).addEventListener('input', function () {
+                document.getElementById(inputMap[id]).innerText = this.value;
+                runGlobalTextAdjustments();
+            });
+        });
+
+        document.getElementById('input-student-photo').addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imgElement = document.getElementById('view-student-photo');
+                    const placeholderText = document.getElementById('photo-placeholder');
+
+                    imgElement.src = e.target.result;
+                    imgElement.style.display = 'block';
+                    placeholderText.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        window.addEventListener('load', runGlobalTextAdjustments);
+
+        function generatePDF() {
+            runGlobalTextAdjustments();
+
+            const element = document.getElementById('certificate-print-area');
+            const studentName = document.getElementById('input-student-name').value || "Student";
+
+            const opt = {
+                margin: 0,
+                filename: `Academic_Certificate_${studentName.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 3, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+
+</html>
